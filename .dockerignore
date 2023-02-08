@@ -1,0 +1,10 @@
+**/bin/
+**/obj/
+**/*.user
+
+.*/
+
+db
+test
+src/HappyCode.NetCoreBoilerplate.Db
+*/appsettings.Production.json
