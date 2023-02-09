@@ -1,0 +1,54 @@
+---
+# docker-compose up -d
+# docker-compose up --build
+# docker-compose down
+
+version: "3.6"
+
+services:
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: mssql
+    command: /bin/bash /usr/config/entrypoint.sh
+    ports:
+      - 1433:1433
+    expose:
+      - 1433
+    networks:
+      default:
+        ipv4_address: 10.5.0.2
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_PID=Developer
+      - SA_PASSWORD=SomeStrongPwd123
+    volumes:
+      - type: volume
+        source: dbdata
+        target: /var/opt/mssql
+      - ./db/mssql/docker-entrypoint.sh:/usr/config/entrypoint.sh
+      - ./db/mssql/docker-db-init.sh:/usr/config/db-init.sh
+      - ./db/mssql/mssql-hotel.sql:/usr/config/db-init.sql
+      - ./db/mssql/docker-configure-db.sh:/usr/config/configure-db.sh
+
+  hotel:
+    image: hotel:local
+    container_name: hotel
+    build:
+      context: .
+    ports:
+      - 5000:80
+    networks:
+      default:
+        ipv4_address: 10.5.0.3
+    depends_on:
+      - mssql
+
+networks:
+  default:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.5.0.0/16
+
+volumes:
+  dbdata:
